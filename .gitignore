@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor
+.vscode/
+.idea/
+
+# Env / local
+.env
+.env.*
+*.log
+_hotspot_preview.jpg
+
+# Source art — the live game uses compressed files in assets/img/
+/*.png
+
+# 3D experiment, not part of the playable game
+index-3d.html
+css/style.css
+js/apartment.js
+js/main.js
+js/textures.js
+assets/reference.png
+Playwrite_GB_S/

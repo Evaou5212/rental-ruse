@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Rent Check · The Apartment Walkthrough</title>
+    <meta
+      name="description"
+      content="A point-and-click apartment viewing game. Find all 22 things worth checking before you sign a lease."
+    />
+    <meta name="theme-color" content="#e4e2fa" />
+    <link rel="stylesheet" href="css/game.css" />
+  </head>
+  <body>
+    <svg class="svg-filters" aria-hidden="true">
+      <filter id="wobble" x="-8%" y="-8%" width="116%" height="116%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3" result="n" />
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="1.8" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </svg>
+
+    <!-- Lined-paper checklist, always on desktop left -->
+    <aside id="drawer" class="notes" aria-label="Viewing checklist">
+      <button id="btn-drawer-close" class="btn btn-icon notes-close" aria-label="Close checklist">
+        <span class="i" data-icon="close"></span>
+      </button>
+      <header class="notes-head">
+        <p class="notes-kicker">apartment walkthrough</p>
+        <h2>Viewing Checklist</h2>
+        <p id="drawer-sub" class="notes-sub"></p>
+      </header>
+      <div id="drawer-list" class="notes-list"></div>
+    </aside>
+    <div id="drawer-backdrop" class="drawer-backdrop"></div>
+
+    <div id="play">
+      <header id="hud-top" class="hud">
+        <div class="brand doodle">
+          <span class="brand-logo"><span class="i" data-icon="home"></span></span>
+          <div>
+            <div class="brand-name">Rent Check</div>
+            <div class="brand-sub" id="scene-name">Main Room</div>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat doodle" title="Elapsed time"><span class="stat-label">Time</span><span id="stat-time">00:00</span></div>
+          <div class="stat doodle" title="Score"><span class="stat-label">Score</span><span id="stat-score">0</span></div>
+          <div class="stat doodle" title="Hints used"><span class="stat-label">Hints</span><span id="stat-hints">0</span></div>
+          <div class="stat doodle" title="Click accuracy"><span class="stat-label">Accuracy</span><span id="stat-accuracy">100%</span></div>
+        </div>
+
+        <div class="hud-actions">
+          <button id="btn-hint" class="btn btn-small" title="Show a hint (−40 pts) · H">
+            <span class="i" data-icon="bulb"></span><span class="btn-text">Hint</span>
+          </button>
+          <button id="btn-checklist" class="btn btn-small" title="Open your checklist · C">
+            <span class="i" data-icon="list"></span><span class="btn-text">List</span>
+          </button>
+          <button id="btn-sound" class="btn btn-icon" title="Toggle sound" aria-label="Toggle sound"></button>
+          <button id="btn-restart" class="btn btn-icon" title="Restart" aria-label="Restart"><span class="i" data-icon="restart"></span></button>
+        </div>
+      </header>
+
+      <main id="stage">
+        <div id="rotate-hint" class="rotate-hint doodle"><span class="i" data-icon="rotate"></span>Rotate your phone sideways for a bigger apartment.</div>
+        <div id="scene">
+          <img id="scene-img" alt="Apartment scene" draggable="false" />
+          <div id="hotspot-layer"></div>
+          <button id="btn-back" class="btn btn-small scene-back hidden"><span class="i" data-icon="back"></span>Main room</button>
+          <div id="scene-intro" class="scene-intro doodle"></div>
+        </div>
+      </main>
+
+      <footer id="hud-bottom" class="hud">
+        <div class="pockets doodle">
+          <span class="pockets-label">Pockets</span>
+          <button id="tool-phone" class="tool" data-tool="phone" title="Check your phone signal">
+            <span class="i" data-icon="phone"></span><span class="tool-name">Phone</span>
+          </button>
+          <button id="tool-listen" class="tool" data-tool="listen" title="Stop and listen">
+            <span class="i" data-icon="ear"></span><span class="tool-name">Listen</span>
+          </button>
+        </div>
+        <div class="dock-center">
+          <div class="progress-wrap doodle" title="Checks collected">
+            <div class="progress-label">
+              <span id="progress-text">0 / 22 checks</span>
+              <span id="streak-text" class="streak hidden">streak</span>
+            </div>
+            <div class="progress-bar"><span id="progress-fill"></span></div>
+          </div>
+          <div id="area-summary" class="area-summary"></div>
+        </div>
+        <div class="dock-right">
+          <div id="scene-tabs" class="scene-tabs doodle" role="tablist"></div>
+          <div class="bottom-actions">
+            <button id="btn-reveal" class="btn btn-small btn-danger hidden" title="Reveal all remaining spots in this room (−150 pts)">
+              <span class="i" data-icon="eye"></span>Reveal remaining
+            </button>
+            <button id="btn-hide-reveal" class="btn btn-small hidden" title="Hide the revealed markers in this room">
+              <span class="i" data-icon="eye"></span>Hide markers
+            </button>
+          </div>
+        </div>
+      </footer>
+
+      <div id="toasts" class="toasts" aria-live="polite"></div>
+      <div id="floaters"></div>
+
+      <!-- Intro -->
+      <div id="intro" class="overlay hidden">
+        <div class="card intro-card doodle">
+          <div class="intro-badge">Point &amp; click · 22 checks · ~10 min</div>
+          <h1>Rent Check</h1>
+          <p class="intro-tag">The Apartment Walkthrough</p>
+          <p class="intro-text">
+            You're touring a sunny Brooklyn studio. The listing photos were perfect. The agent is smiling.
+            You have <strong>one visit</strong> before you sign a 12-month lease.
+          </p>
+          <p class="intro-text">
+            Explore the apartment freely and click on anything you'd want to inspect. Every real check you
+            find gets added to your personal viewing checklist. Find all <strong>22</strong> to finish.
+          </p>
+          <ul class="intro-how">
+            <li><span class="i" data-icon="search"></span><div><b>Click</b> anything suspicious — areas worth checking light up when you hover them.</div></li>
+            <li><span class="i" data-icon="door"></span><div><b>Walk through doors</b> to reach other rooms.</div></li>
+            <li><span class="i" data-icon="pocket"></span><div><b>Check your pockets</b> — some tests need things you already carry.</div></li>
+            <li><span class="i" data-icon="bulb"></span><div><b>Stuck?</b> The game nudges you after a while, or press <b>Hint</b> (costs points).</div></li>
+          </ul>
+          <div class="intro-actions">
+            <button id="btn-resume" class="btn btn-secondary hidden">Resume saved tour</button>
+            <button id="btn-start" class="btn btn-primary">Start the viewing<span class="i" data-icon="arrow"></span></button>
+          </div>
+          <p class="intro-best" id="intro-best"></p>
+        </div>
+      </div>
+
+      <!-- Detail modal -->
+      <div id="modal" class="overlay hidden" role="dialog" aria-modal="true">
+        <div class="card modal-card doodle">
+          <button id="modal-close" class="btn btn-icon modal-close" aria-label="Close"><span class="i" data-icon="close"></span></button>
+          <div id="modal-tabs" class="modal-tabs hidden"></div>
+          <div class="modal-grid">
+            <div class="modal-media-wrap">
+              <div id="modal-media" class="modal-media doodle"></div>
+              <p id="modal-caption" class="modal-caption"></p>
+            </div>
+            <div class="modal-body" id="modal-body">
+              <div class="modal-meta">
+                <span id="modal-cat" class="tag"></span>
+                <span id="modal-count" class="modal-count"></span>
+              </div>
+              <h2 id="modal-title"></h2>
+              <div id="modal-notice" class="modal-notice hidden doodle"></div>
+              <p id="modal-why" class="modal-why doodle"></p>
+              <div id="modal-details" class="modal-details hidden">
+                <h4 class="h-check">What to check</h4>
+                <ul id="modal-tips"></ul>
+                <h4 class="h-flag">Red flags</h4>
+                <ul id="modal-flags" class="flags"></ul>
+                <h4 class="h-ask">Ask the landlord</h4>
+                <blockquote id="modal-ask"></blockquote>
+              </div>
+              <div class="modal-actions">
+                <button id="modal-primary" class="btn btn-primary"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Completion -->
+      <div id="complete" class="overlay hidden">
+        <div class="card complete-card doodle">
+          <button id="complete-close" class="btn btn-icon modal-close" aria-label="Close results">
+            <span class="i" data-icon="close"></span>
+          </button>
+          <div class="confetti" id="confetti"></div>
+          <div class="complete-rank">
+            <div class="rank-badge doodle" id="rank-badge">S</div>
+            <div>
+              <div class="rank-label">Viewing complete · your rank</div>
+              <h1 id="rank-title">Master Inspector</h1>
+              <p id="rank-blurb"></p>
+            </div>
+          </div>
+          <div class="complete-stats" id="complete-stats"></div>
+          <div class="complete-breakdown" id="complete-breakdown"></div>
+          <h3>Your viewing checklist</h3>
+          <p class="complete-sub">Take this with you to your next apartment viewing.</p>
+          <div id="complete-list" class="complete-list"></div>
+          <div class="complete-actions">
+            <button id="btn-copy" class="btn btn-secondary"><span class="i" data-icon="copy"></span>Copy checklist</button>
+            <button id="btn-print" class="btn btn-secondary"><span class="i" data-icon="print"></span>Print</button>
+            <button id="btn-again" class="btn btn-primary">Play again<span class="i" data-icon="restart"></span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading screen -->
+    <div id="loader" aria-live="polite">
+      <div class="loader-mark doodle"><span class="i" data-icon="home"></span></div>
+      <div class="loader-title">Rent Check</div>
+      <div class="loader-sub">Unlocking the apartment</div>
+      <div class="loader-bar doodle"><span id="loader-fill"></span></div>
+      <div class="loader-pct" id="loader-pct">0%</div>
+    </div>
+
+    <script type="module" src="js/game.js"></script>
+  </body>
+</html>
