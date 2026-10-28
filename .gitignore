@@ -17,7 +17,7 @@ Desktop.ini
 _hotspot_preview.jpg
 
 # Source art — the live game uses compressed files in assets/img/
-/*.png
+images/
 
 # 3D experiment, not part of the playable game
 index-3d.html

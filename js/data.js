@@ -34,7 +34,9 @@ export const CATEGORIES = {
   doors: { label: "Doors & Security", color: "#5c5c5c" },
   appliances: { label: "Appliances", color: "#1f8a70" },
   storage: { label: "Storage", color: "#c2578b" },
-  safety: { label: "Safety", color: "#d62828" },
+  air: { label: "Air & Smell", color: "#5b8a4a" },
+  pests: { label: "Pests", color: "#9a5b2f" },
+  building: { label: "Building & Fees", color: "#3d6a9a" },
   connectivity: { label: "Connectivity", color: "#2b7de9" },
   layout: { label: "Layout & Size", color: "#6b8e23" },
 };
@@ -44,9 +46,9 @@ export const AREAS = {
   kitchen: { label: "kitchen", scene: "room" },
   living: { label: "living area", scene: "room" },
   sleep: { label: "sleeping nook", scene: "room" },
-  up: { label: "ceiling", scene: "room" },
   bath: { label: "bathroom", scene: "bathroom" },
   pocket: { label: "your own pockets", scene: null },
+  exit: { label: "on your way out", scene: null },
 };
 
 // ---------------------------------------------------------------------------
@@ -287,7 +289,7 @@ export const ITEMS = {
     why: "Water damage and mold show up on walls and ceilings first — and a fresh coat of paint hides them for exactly one season.",
     steps: [
       {
-        crop: [67, 12, 15, 20],
+        image: IMG + "walls.jpg",
         caption: "Don't just look at the art. Look at the wall around it, the ceiling line, and the window frame.",
       },
     ],
@@ -380,12 +382,12 @@ export const ITEMS = {
     category: "electric",
     area: "living",
     icon: "🔌",
-    riddle: "Tiny, white, rectangular, and easy to miss on the wall between the fridge and the bathroom.",
+    riddle: "Tiny, white, rectangular, and easy to miss on the wall between the fridge and the tiled bathroom door.",
     why: "Older NYC buildings often have 2–3 outlets per room. Extension cords everywhere is how you end up unhappy (and how fires start).",
     steps: [
       {
-        crop: [34, 26, 10, 14],
-        caption: "One outlet on this whole wall. Count them for every room and picture where your bed, desk and TV go.",
+        image: IMG + "switch.jpg",
+        caption: "One lonely switch on this stretch of wall. Count every outlet and switch, then picture where the bed, desk and kettle go.",
       },
     ],
     tips: [
@@ -442,12 +444,18 @@ export const ITEMS = {
     category: "appliances",
     area: "kitchen",
     icon: "🧊",
-    riddle: "Big, cream-colored, covered in flower magnets.",
+    riddle: "Cream fridge with flower magnets — and the slim silver dishwasher next to the stove.",
     why: "A warm fridge, a moldy dishwasher or roach droppings in a drawer are all things you can only discover by opening them.",
     steps: [
       {
-        crop: [20, 27, 20, 33],
-        caption: "Open the fridge and freezer. Open the dishwasher. Then open every drawer and cabinet in the kitchen — all of them.",
+        image: IMG + "fridge.jpg",
+        caption: "Ice caked on the walls. The freezer is running — but a seal this bad means frost, not fresh food.",
+        action: "Open the dishwasher",
+      },
+      {
+        image: IMG + "dishwasher.jpg",
+        caption: "Door cracked open. Mold creeping along the seal. This is why you look inside — even when it looks fine from the outside.",
+        action: "Check the fridge",
       },
     ],
     tips: [
@@ -476,8 +484,8 @@ export const ITEMS = {
     why: "In-unit laundry is a huge perk — unless the dryer has no vent or the washer gasket is a mold farm.",
     steps: [
       {
-        crop: [50, 22, 18, 40],
-        caption: "In-unit, stacked washer and dryer. Open both doors — don't just admire them.",
+        image: IMG + "laundry.jpg",
+        caption: "Both doors open. Rust on the drums and a dark gasket. This is why you look inside.",
       },
     ],
     tips: [
@@ -506,8 +514,8 @@ export const ITEMS = {
     why: "Studios live or die by storage. A closet that's too shallow or smells of mold will annoy you every single morning.",
     steps: [
       {
-        crop: [74, 8, 22, 50],
-        caption: "The closet behind the curtain. Open every door, pull the curtain all the way back, and look UP inside it.",
+        image: IMG + "closet.jpg",
+        caption: "The closet behind the curtain. Pull it all the way back, count the hanging space, and look UP inside it.",
       },
     ],
     tips: [
@@ -525,35 +533,97 @@ export const ITEMS = {
     takeaway: "Open every closet; check depth, smell, rod and ceiling.",
   },
 
-  // ----- Safety --------------------------------------------------------------
-  detector: {
-    title: "Smoke & CO Detectors",
-    category: "safety",
-    area: "up",
-    icon: "🚨",
-    riddle: "Look UP. Something that should be on the ceiling... isn't.",
-    why: "Smoke and carbon monoxide detectors are required by law and they save lives. Removed or dead ones are shockingly common in rentals.",
+  // ----- Air ----------------------------------------------------------------
+  smell: {
+    title: "Smell the Apartment",
+    category: "air",
+    area: "pocket",
+    icon: "👃",
+    riddle: "Don't look first. The second you walk in, breathe.",
+    why: "Mold, sewer gas and a gas leak announce themselves before anything looks wrong. If you wait to notice with your eyes, you've already been standing in it.",
     steps: [
       {
-        crop: [30, 0, 40, 20],
-        overlay: "missing",
-        caption: "Scan the whole ceiling. No smoke detector. No CO detector. Not even a disconnected one — and this unit has a gas stove.",
+        tool: "smell",
+        caption: "Stop at the door. Breathe. Then check again at the sink and beside the gas stove.",
+        action: "Take a slow breath",
       },
     ],
     tips: [
-      "Locate a smoke detector and a carbon monoxide detector (or a combo unit). NYC requires both, and the CO detector must be near sleeping areas.",
-      "Press the TEST button. It should chirp loudly. If nothing happens, the battery is dead or the unit is disconnected.",
-      "Check the date on the back/side — detectors expire after 10 years.",
-      "A dangling unit with no battery is a red flag about how the landlord handles maintenance in general.",
-      "Also note: fire extinguisher? Sprinklers? Clear path to a second exit (fire escape or second stairwell)?",
+      "Do this first, before cooking smells, open windows or the agent's cologne cover anything up.",
+      "Musty / earthy = mold or a past leak. Follow it to a corner, a closet or under a sink.",
+      "Rotten-egg or sewer at a drain = a dry P-trap or a vent problem. Run water and smell again.",
+      "Gas (sharp, sulfurous) near the stove: leave the unit and tell the agent. Do not keep touring.",
+      "Open the fridge, the dishwasher and the closet and smell those too — stale air hides in closed boxes.",
     ],
     redFlags: [
-      "No detectors at all (like this room).",
-      "Detector with the battery removed.",
-      "Gas stove + no CO detector.",
+      "A musty smell you cannot locate.",
+      "Sewer smell that comes back after you run the water.",
+      "Any gas smell at all.",
     ],
-    ask: "“Will working smoke and CO detectors be installed before move-in? Can that be written into the lease?”",
-    takeaway: "Find & test smoke and CO detectors; demand they're installed before move-in.",
+    ask: "“Has there been mold, a sewage backup, or a gas leak in this unit or the building?”",
+    takeaway: "Breathe at the door, at the sink, and by the stove before you look at anything else.",
+  },
+
+  // ----- Pests ---------------------------------------------------------------
+  pests: {
+    title: "Pest Evidence",
+    category: "pests",
+    area: "kitchen",
+    icon: "🪳",
+    riddle: "Look where the light doesn't reach: cabinet corners, behind the stove, along the baseboards.",
+    why: "Roaches, mice and bed bugs travel between units. One dropping or one sticky trap means a building-wide problem, not a one-off.",
+    steps: [
+      {
+        image: IMG + "pests.jpg",
+        caption: "A mouse under the stove, crumbs on the kickplate. Look here — and in cabinet corners, along the baseboards, and on the bed frame.",
+      },
+    ],
+    tips: [
+      "Kitchen: pull the stove out an inch if you can. Look at the floor, the wall, and the back corners of every cabinet.",
+      "Baseboards and under the fridge: pepper-like specks (roach droppings) or rice-shaped pellets (mice).",
+      "Sticky traps, bait stations or a professionally sealed hole usually mean an active job — ask how long.",
+      "Bed bugs: along the mattress piping, the bed frame, and the nightstand. Tiny dark spots or shed skins.",
+      "Daytime roaches in a clean-looking kitchen are a very bad sign.",
+    ],
+    redFlags: [
+      "Droppings, egg cases, or live insects.",
+      "Bait traps in more than one room.",
+      "The agent waves it off as “every building in the city.”",
+    ],
+    ask: "“Any pest history in this unit or the building? Is there a building-wide exterminator?”",
+    takeaway: "Check cabinet corners, behind the stove, baseboards, and the bed frame.",
+  },
+
+  // ----- Building ------------------------------------------------------------
+  building: {
+    title: "Hallway & Building",
+    category: "building",
+    area: "exit",
+    icon: "🏢",
+    riddle: "Before you thank the agent — step back into the hallway.",
+    why: "The unit is only half the lease. Stairs, trash, laundry, and mystery amenity fees decide whether you actually like living here.",
+    steps: [
+      {
+        tool: "building",
+        caption: "Walk the hall, the stairs, the lobby. Note what works, what smells, and what you'll be billed for.",
+        action: "Step into the hall",
+      },
+    ],
+    tips: [
+      "Hallway: lighting, cleanliness, smells, locked stairwell doors, and whether packages pile up.",
+      "Stairs / elevator: how many flights with groceries? Does the elevator actually come?",
+      "Trash: chute, bins, or a walk to the sidewalk? How often is it collected?",
+      "Laundry: in-unit is a perk; building machines mean hours, cost per load, and a basement trip.",
+      "Ask what the rent includes vs. extras: heat, hot water, gas, internet, storage, bike room, gym, 'amenities fee'.",
+      "Intercom / buzzer / front-door lock: test them on your way out.",
+    ],
+    redFlags: [
+      "A filthy or unlit hallway, or a self-locking stairwell you cannot re-enter.",
+      "An 'amenities fee' the listing never mentioned.",
+      "No working buzzer, and packages left in an unlocked lobby.",
+    ],
+    ask: "“What's included in rent, what's extra, and can I see the laundry / trash / bike room today?”",
+    takeaway: "Walk the hall and stairs; list every fee; test the front door and buzzer.",
   },
 
   // ----- Connectivity --------------------------------------------------------
@@ -595,7 +665,7 @@ export const ITEMS = {
     why: "“A queen fits” is not the same as “a queen fits and you can still open the closet.” Measure now, not after the lease is signed.",
     steps: [
       {
-        crop: [64, 32, 26, 28],
+        image: IMG + "bed.jpg",
         overlay: "tape",
         caption: "Measure where your bed, desk and sofa would go. Note where the windows, radiator and outlets are — they decide the layout for you.",
       },
@@ -692,7 +762,7 @@ export const ITEMS = {
     why: "Bathrooms without ventilation grow mold; sinks that drain slowly flood vanities. Both are cheap to check, expensive to live with.",
     steps: [
       {
-        crop: [52, 44, 22, 26],
+        image: IMG + "bath_sink.jpg",
         caption: "Fill the sink, pull the stopper, time it. Then look up: is there an exhaust fan or a window? This one has neither.",
       },
     ],
@@ -756,12 +826,12 @@ export const HOTSPOTS = [
   { id: "hs_bed", scene: "room", items: ["dimensions"], rects: [[67.5, 36, 18.5, 18]] },
   { id: "hs_laundry", scene: "room", items: ["laundry"], rects: [[56, 27, 8, 32]] },
   { id: "hs_outlets", scene: "room", items: ["outlets"], rects: [[37.5, 31, 4, 7], [89.8, 31, 2.5, 5.5]] },
-  { id: "hs_fridge", scene: "room", items: ["fridge"], rects: [[25.5, 30, 12, 29], [13, 53, 7, 25]] },
+  { id: "hs_fridge", scene: "room", items: ["fridge"], rects: [[25.5, 30, 12, 29], [13, 53, 7, 25]], stepPerRect: true },
   { id: "hs_sink", scene: "room", items: ["faucet", "drain"], rects: [[10, 36, 14.5, 17]] },
   { id: "hs_undersink", scene: "room", items: ["undersink"], rects: [[20, 52, 7.5, 20]] },
   { id: "hs_stove", scene: "room", items: ["stove"], rects: [[0, 53, 12.5, 40]] },
   { id: "hs_rug", scene: "room", items: ["rug"], rects: [[48, 70, 26, 30]] },
-  { id: "hs_ceiling", scene: "room", items: ["detector"], rects: [[36, 0, 44, 10]] },
+  { id: "hs_pests", scene: "room", items: ["pests"], rects: [[0, 87, 13, 11], [16, 78, 12, 16], [66, 51, 18, 8]] },
   // Door into the bathroom: not an item, switches scene.
   { id: "hs_bathdoor", scene: "room", goto: "bathroom", rects: [[41.5, 11, 11, 50]] },
 

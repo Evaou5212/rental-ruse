@@ -6,7 +6,7 @@
     <title>Rent Check · The Apartment Walkthrough</title>
     <meta
       name="description"
-      content="A point-and-click apartment viewing game. Find all 22 things worth checking before you sign a lease."
+      content="A point-and-click apartment viewing game. Find all 24 things worth checking before you sign a lease."
     />
     <meta name="theme-color" content="#e4e2fa" />
     <link rel="stylesheet" href="css/game.css" />
@@ -54,6 +54,9 @@
           <button id="btn-hint" class="btn btn-small" title="Show a hint (−40 pts) · H">
             <span class="i" data-icon="bulb"></span><span class="btn-text">Hint</span>
           </button>
+          <button id="btn-results" class="btn btn-small btn-results hidden" title="View your results">
+            <span class="i" data-icon="star"></span><span class="btn-text">Results</span>
+          </button>
           <button id="btn-checklist" class="btn btn-small" title="Open your checklist · C">
             <span class="i" data-icon="list"></span><span class="btn-text">List</span>
           </button>
@@ -81,11 +84,18 @@
           <button id="tool-listen" class="tool" data-tool="listen" title="Stop and listen">
             <span class="i" data-icon="ear"></span><span class="tool-name">Listen</span>
           </button>
+          <button id="tool-smell" class="tool" data-tool="smell" title="Smell the apartment">
+            <span class="i" data-icon="nose"></span><span class="tool-name">Sniff</span>
+          </button>
+          <span class="pockets-split" aria-hidden="true"></span>
+          <button id="tool-building" class="tool" data-tool="building" title="Check the hallway and building before you leave">
+            <span class="i" data-icon="building"></span><span class="tool-name">Hallway</span>
+          </button>
         </div>
         <div class="dock-center">
           <div class="progress-wrap doodle" title="Checks collected">
             <div class="progress-label">
-              <span id="progress-text">0 / 22 checks</span>
+              <span id="progress-text">0 / 24 checks</span>
               <span id="streak-text" class="streak hidden">streak</span>
             </div>
             <div class="progress-bar"><span id="progress-fill"></span></div>
@@ -111,7 +121,7 @@
       <!-- Intro -->
       <div id="intro" class="overlay hidden">
         <div class="card intro-card doodle">
-          <div class="intro-badge">Point &amp; click · 22 checks · ~10 min</div>
+          <div class="intro-badge">Point &amp; click · 24 checks · ~10 min</div>
           <h1>Rent Check</h1>
           <p class="intro-tag">The Apartment Walkthrough</p>
           <p class="intro-text">
@@ -120,12 +130,12 @@
           </p>
           <p class="intro-text">
             Explore the apartment freely and click on anything you'd want to inspect. Every real check you
-            find gets added to your personal viewing checklist. Find all <strong>22</strong> to finish.
+            find gets added to your personal viewing checklist. Find all <strong>24</strong> to finish.
           </p>
           <ul class="intro-how">
             <li><span class="i" data-icon="search"></span><div><b>Click</b> anything suspicious — areas worth checking light up when you hover them.</div></li>
             <li><span class="i" data-icon="door"></span><div><b>Walk through doors</b> to reach other rooms.</div></li>
-            <li><span class="i" data-icon="pocket"></span><div><b>Check your pockets</b> — some tests need things you already carry.</div></li>
+            <li><span class="i" data-icon="pocket"></span><div><b>Check your pockets</b> — some tests need things you already carry. Smell the place. On your way out, check the hallway.</div></li>
             <li><span class="i" data-icon="bulb"></span><div><b>Stuck?</b> The game nudges you after a while, or press <b>Hint</b> (costs points).</div></li>
           </ul>
           <div class="intro-actions">

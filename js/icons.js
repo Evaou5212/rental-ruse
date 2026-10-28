@@ -16,6 +16,7 @@ export const ICONS = {
   back: svg('<path d="m15 18-6-6 6-6"/>'),
   arrow: svg('<path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>'),
   check: svg('<path d="m5 12 5 5L20 7"/>'),
+  star: svg('<path d="M12 3l2.6 5.4 6 .9-4.3 4.2 1 5.9L12 16.8 6.7 19.4l1-5.9L3.4 9.3l6-.9z"/>'),
   lock: svg('<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'),
   phone: svg('<rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/>'),
   ear: svg('<path d="M6 9a6 6 0 0 1 12 0c0 3-2 4-3 6s-1 5-4 5"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-1 2-1.5 3"/>'),
@@ -25,6 +26,8 @@ export const ICONS = {
   rotate: svg('<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M2 12a10 10 0 0 1 3-7"/><path d="M22 12a10 10 0 0 1-3 7"/>'),
   signal: svg('<path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 20V4"/>'),
   wave: svg('<path d="M2 12h3l2-6 3 12 3-10 2 6 2-3 2 1h3"/>'),
+  nose: svg('<path d="M12 4c2.2 3.2 3.5 6 3.5 8.4a3.5 3.5 0 1 1-7 0C8.5 10 9.8 7.2 12 4z"/><path d="M10.2 14.6c.4.7 1.1 1.2 1.8 1.2s1.4-.5 1.8-1.2"/>'),
+  building: svg('<path d="M4 21V9l8-5 8 5v12"/><path d="M9 21v-7h6v7"/><path d="M9 11h.01M15 11h.01M12 11h.01"/>'),
 };
 
 /** Fill every `[data-icon]` element with its SVG. */

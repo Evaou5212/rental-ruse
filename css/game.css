@@ -1,6 +1,6 @@
 /* ==========================================================================
    Rent Check · doodle / handwritten notebook
-   Left: lined paper checklist (note.png + Single Day)
+   Left: lined paper checklist (Single Day)
    Right: apartment scene, edge to edge, with sketchy UI scraps on top
    ========================================================================== */
 @font-face {
@@ -279,6 +279,7 @@ ul { list-style: none; }
 }
 .stat-label { font-size: 14px; color: var(--ink-3); }
 .hud-actions { display: flex; gap: 6px; margin-left: auto; align-items: center; }
+.btn-results { background: #ffe28a; }
 
 .scene-tabs { display: flex; gap: 4px; padding: 4px; }
 .scene-tab {
@@ -334,7 +335,7 @@ ul { list-style: none; }
 }
 .pin.hidden { display: none; }
 .pin svg { width: 15px; height: 15px; }
-.pin.found { color: var(--ok); background: #c8f0c8; }
+.pin.found { color: var(--ok); background: #c8f0c8; pointer-events: auto; cursor: pointer; }
 .pin.partial { color: var(--warn); }
 .pin.door-pin { width: 34px; height: 34px; animation: bob 2.4s ease-in-out infinite; }
 .pin.door-pin svg { width: 17px; height: 17px; }
@@ -359,8 +360,15 @@ ul { list-style: none; }
 .marker.fade { opacity: 0; }
 
 /* ---------- Bottom HUD ---------- */
-.pockets { display: flex; align-items: center; gap: 6px; padding: 6px 10px 6px 12px; }
+.pockets { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 6px 10px 6px 12px; }
 .pockets-label { font-size: 15px; color: var(--ink-3); margin-right: 2px; }
+.pockets-split {
+  width: 0;
+  align-self: stretch;
+  margin: 2px 4px;
+  border-left: 2px dashed var(--ink);
+  opacity: 0.35;
+}
 .dock-center { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .dock-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .tool {

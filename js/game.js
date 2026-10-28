@@ -16,7 +16,7 @@ import { ICONS, mountIcons } from "./icons.js";
 // ---------------------------------------------------------------------------
 const $ = (id) => document.getElementById(id);
 const TOTAL = Object.keys(ITEMS).length;
-const SAVE_KEY = "rentcheck.save.v1";
+const SAVE_KEY = "rentcheck.save.v2";
 const BEST_KEY = "rentcheck.best.v1";
 const MUTE_KEY = "rentcheck.muted";
 
@@ -200,6 +200,8 @@ function updateHUD() {
   // pockets
   $("tool-phone").classList.toggle("done", isFound("phone"));
   $("tool-listen").classList.toggle("done", isFound("listen"));
+  $("tool-smell").classList.toggle("done", isFound("smell"));
+  $("tool-building").classList.toggle("done", isFound("building"));
 
   // area summary
   const summary = $("area-summary");
@@ -227,6 +229,9 @@ function updateHUD() {
   // hint button cooldown
   const hb = $("btn-hint");
   hb.disabled = S.elapsedMs < R.manualHintReadyAt || S.complete;
+
+  const resultsOpen = !$("complete").classList.contains("hidden");
+  $("btn-results").classList.toggle("hidden", !S.complete || resultsOpen);
 
   renderTabs();
   $("scene-name").textContent = SCENES[S.scene].name;
@@ -324,10 +329,11 @@ function renderScene({ intro = true } = {}) {
     const done = hotspotDone(hs);
     const next = hotspotNextIndex(hs);
     const partial = hs.items && next > 0 && !done;
-    hs.rects.forEach((r) => {
+    hs.rects.forEach((r, i) => {
       const n = el("div", `hotspot ${hs.goto ? "door" : ""} ${done ? "found" : ""} ${partial ? "partial" : ""}`);
       placeRect(n, r);
       n.dataset.hs = hs.id;
+      n.dataset.rect = String(i);
       n.setAttribute("role", "button");
       n.setAttribute("aria-label", hs.goto ? `Go to ${SCENES[hs.goto].name}` : "Inspect this area");
       n.tabIndex = 0;
@@ -335,7 +341,7 @@ function renderScene({ intro = true } = {}) {
     });
     // pin on every rect — a hotspot can cover several objects (fridge + dishwasher)
     if (hs.items) {
-      hs.rects.forEach((r) => {
+      hs.rects.forEach((r, i) => {
         const c = rectCenter(r);
         const pin = el(
           "div",
@@ -345,6 +351,7 @@ function renderScene({ intro = true } = {}) {
         pin.style.left = `${c.x}%`;
         pin.style.top = `${c.y}%`;
         pin.dataset.hs = hs.id;
+        pin.dataset.rect = String(i);
         layer.appendChild(pin);
       });
     } else if (hs.goto) {
@@ -432,7 +439,7 @@ function showMarker(hs, persistent = false) {
 }
 
 function pocketLeft() {
-  return ["phone", "listen"].filter((id) => !isFound(id));
+  return ["phone", "listen", "smell", "building"].filter((id) => !isFound(id));
 }
 
 /** Pick what to point at: an undiscovered hotspot in this scene, the door to a
@@ -473,7 +480,11 @@ function softNudge() {
   } else if (target.type === "door") {
     toast(`<b>Everything here is checked.</b> Find the way into the <b>${SCENES[target.scene].name.toLowerCase()}</b>.`, { kind: "hint", ms: 6000 });
   } else {
-    toast(`<b>Nothing left in the rooms.</b> ${ITEMS[target.tool].riddle}`, { kind: "hint", ms: 7000 });
+    if (target.tool === "building") {
+      toast(`<b>One more thing before you leave.</b> ${ITEMS.building.riddle}`, { kind: "hint", ms: 7000 });
+    } else {
+      toast(`<b>Nothing left in the rooms.</b> ${ITEMS[target.tool].riddle}`, { kind: "hint", ms: 7000 });
+    }
   }
 }
 
@@ -499,7 +510,12 @@ function markerHint(manual) {
     const btn = $(`tool-${target.tool}`);
     btn.classList.add("nudge");
     setTimeout(() => btn.classList.remove("nudge"), 6000);
-    toast(`Check <b>your pockets</b> — bottom left.`, { kind: "hint" });
+    toast(
+      target.tool === "building"
+        ? `Before you leave — tap <b>Hallway</b> at the bottom left.`
+        : `Check <b>your pockets</b> — bottom left.`,
+      { kind: "hint" }
+    );
   }
   if (manual) {
     S.hintsManual++;
@@ -580,9 +596,8 @@ const MISS_LINES = [
 ];
 
 function onLayerClick(e) {
-  if (!S.started || S.complete) return;
+  if (!S.started) return;
   const t = e.target;
-  S.clicks++;
 
   const hsId = t.dataset.hs;
   if (hsId) {
@@ -592,9 +607,12 @@ function onLayerClick(e) {
       return;
     }
     Sound.click();
-    openHotspot(hs);
+    openHotspot(hs, Number(t.dataset.rect || 0));
     return;
   }
+
+  if (S.complete) return;
+  S.clicks++;
 
   if (t.dataset.decoy !== undefined) {
     S.misclicks++;
@@ -624,10 +642,19 @@ function ripple(x, y, decoy) {
 // ---------------------------------------------------------------------------
 // Modal (item detail / steps)
 // ---------------------------------------------------------------------------
-function openHotspot(hs) {
+function openHotspot(hs, rectIndex = 0) {
   const done = hotspotDone(hs);
   const idx = done ? 0 : hotspotNextIndex(hs);
-  R.modal = { hotspot: hs, itemIndex: idx, stepIndex: done ? ITEMS[hs.items[0]].steps.length - 1 : 0, review: done, toolDone: false };
+  const item = ITEMS[hs.items[idx] || hs.items[0]];
+  const n = item.steps.length;
+  let stepOrder = null;
+  let stepIndex = done ? n - 1 : 0;
+  if (hs.stepPerRect && n > 1) {
+    const start = Math.min(Math.max(0, rectIndex), n - 1);
+    if (done) stepIndex = start;
+    else if (start > 0) stepOrder = [...Array(n).keys()].map((i) => (start + i) % n);
+  }
+  R.modal = { hotspot: hs, itemIndex: idx, stepIndex, stepOrder, review: done, toolDone: false };
   // remove marker on this hotspot
   const m = R.markers.get(hs.id);
   if (m) {
@@ -639,7 +666,7 @@ function openHotspot(hs) {
 }
 
 function openTool(tool) {
-  if (!S.started || S.complete) return;
+  if (!S.started) return;
   Sound.click();
   const fake = { id: `tool_${tool}`, items: [tool], rects: [], scene: null, isTool: true };
   const done = isFound(tool);
@@ -660,8 +687,9 @@ function renderModal() {
   const hs = M.hotspot;
   const itemId = hs.items[M.itemIndex];
   const item = ITEMS[itemId];
-  const step = item.steps[M.stepIndex];
-  const last = M.stepIndex === item.steps.length - 1;
+  const steps = M.stepOrder ? M.stepOrder.map((i) => item.steps[i]) : item.steps;
+  const step = steps[M.stepIndex];
+  const last = M.stepIndex === steps.length - 1;
   const cat = CATEGORIES[item.category];
 
   // tabs (review mode with several items)
@@ -734,7 +762,7 @@ function renderModal() {
   $("modal-why").textContent = item.why;
 
   const details = $("modal-details");
-  const showDetails = last && (!step.tool || M.toolDone || M.review);
+  const showDetails = M.review || (last && (!step.tool || M.toolDone));
   details.classList.toggle("hidden", !showDetails);
   if (showDetails) {
     $("modal-tips").innerHTML = item.tips.map((t) => `<li>${t}</li>`).join("");
@@ -746,7 +774,14 @@ function renderModal() {
   const btn = $("modal-primary");
   btn.className = "btn btn-primary";
   btn.disabled = false;
-  if (M.review) {
+  if (M.review && !last) {
+    btn.textContent = `${step.action || "Look closer"} →`;
+    btn.onclick = () => {
+      Sound.open();
+      M.stepIndex++;
+      renderModal();
+    };
+  } else if (M.review) {
     btn.textContent = "Close";
     btn.onclick = closeModal;
   } else if (step.tool && !M.toolDone) {
@@ -781,7 +816,10 @@ function buildOverlay(kind) {
       o.innerHTML = `<div class="ring" style="left:78%;top:63%"></div><div class="fx-label warn" style="left:70%;top:70%">Drip!</div>`;
       break;
     case "missing":
-      o.innerHTML = `<div class="dashed"></div><div class="fx-label warn" style="left:50%;top:78%;transform:translateX(-50%)">No smoke / CO detector found</div>`;
+      o.innerHTML = `<div class="dashed"></div><div class="fx-label warn" style="left:50%;top:78%;transform:translateX(-50%)">Nothing here</div>`;
+      break;
+    case "pests":
+      o.innerHTML = `<div class="fx-label warn" style="left:28%;top:74%;transform:translateX(-50%)">Droppings along the kickplate</div><div class="fx-label warn" style="left:72%;top:18%;transform:translateX(-50%)">Bed frame too</div>`;
       break;
     case "tape":
       o.innerHTML = `<div class="tape"></div><div class="fx-label" style="left:50%;top:22%;transform:translateX(-50%)">60″ queen — does it fit?</div>`;
@@ -832,6 +870,21 @@ function renderTool(media, tool, M) {
         </div>
       </div>`;
     if (M.toolDone) media.querySelector("#phone-bars").dataset.level = "2";
+  } else if (tool === "smell") {
+    media.innerHTML = `
+      <div class="tool-stage listen-stage">
+        <div class="ear">${ICONS.nose}</div>
+        <div class="wave" id="wave">${Array.from({ length: 24 }, () => "<i></i>").join("")}</div>
+        <div id="listen-msg" class="listen-msg">${M.toolDone ? "Your nose caught what the photos hid." : "Stand in the doorway. Breathe in slowly."}</div>
+        <ul id="listen-list" class="listen-list ${M.toolDone ? "" : "hidden"}">${smellRows()}</ul>
+      </div>`;
+  } else if (tool === "building") {
+    media.innerHTML = `
+      <div class="tool-stage listen-stage">
+        <div class="ear">${ICONS.building}</div>
+        <div id="listen-msg" class="listen-msg">${M.toolDone ? "The building told you as much as the apartment did." : "Step out. The hallway is part of the tour."}</div>
+        <ul id="listen-list" class="listen-list ${M.toolDone ? "" : "hidden"}">${buildingRows()}</ul>
+      </div>`;
   } else {
     media.innerHTML = `
       <div class="tool-stage listen-stage">
@@ -865,6 +918,32 @@ const LISTEN_ROWS = [
 ];
 const listenRows = () =>
   LISTEN_ROWS.map(
+    ([name, lvl, note], i) =>
+      `<li><span class="li-ic mono">${String(i + 1).padStart(2, "0")}</span><span class="li-name">${name}<small>${note}</small></span><span class="level l${lvl}"><i></i><i></i><i></i></span></li>`
+  ).join("");
+
+const SMELL_ROWS = [
+  ["At the door", 2, "Faint musty note — follow it"],
+  ["Kitchen sink / drain", 2, "Sewer sniff when the water sits"],
+  ["Beside the gas stove", 0, "No gas. That's the one you want"],
+  ["Under-sink cabinet", 3, "Moldy, damp, closed-in"],
+  ["Closet by the bed", 1, "Stale, not alarming"],
+];
+const smellRows = () =>
+  SMELL_ROWS.map(
+    ([name, lvl, note], i) =>
+      `<li><span class="li-ic mono">${String(i + 1).padStart(2, "0")}</span><span class="li-name">${name}<small>${note}</small></span><span class="level l${lvl}"><i></i><i></i><i></i></span></li>`
+  ).join("");
+
+const BUILDING_ROWS = [
+  ["Hallway lights", 2, "One bulb out, a little grimy"],
+  ["Stairs / elevator", 3, "Walk-up. Groceries will notice"],
+  ["Trash", 2, "Bins in the yard, not a chute"],
+  ["Shared laundry", 1, "Basement, $2.50 / load, evenings packed"],
+  ["Mystery fees", 3, "Ask: heat, hot water, 'amenities'"],
+];
+const buildingRows = () =>
+  BUILDING_ROWS.map(
     ([name, lvl, note], i) =>
       `<li><span class="li-ic mono">${String(i + 1).padStart(2, "0")}</span><span class="li-name">${name}<small>${note}</small></span><span class="level l${lvl}"><i></i><i></i><i></i></span></li>`
   ).join("");
@@ -903,29 +982,60 @@ function startTool(tool, M) {
         renderModal();
       }, 3600)
     );
+  } else if (tool === "smell") {
+    runTimedList(M, btn, {
+      doing: "Breathing…",
+      seq: [
+        [400, "At the door… a little musty."],
+        [1300, "The sink. Sewer, faintly, when the water sits."],
+        [2200, "The stove. No gas. Good."],
+        [3100, "Cabinet under the sink. Damp. Moldy."],
+        [4000, "The closet. Just stale."],
+      ],
+      doneAt: 4800,
+    });
+  } else if (tool === "building") {
+    runTimedList(M, btn, {
+      doing: "Walking the hall…",
+      seq: [
+        [350, "Hallway: one light out."],
+        [1100, "Stairs. No elevator. Count the flights."],
+        [1900, "Trash bins in the yard — not a chute."],
+        [2700, "Basement laundry. $2.50 a load."],
+        [3500, "And that 'amenities fee' the listing skipped."],
+      ],
+      doneAt: 4200,
+    });
   } else {
-    const wave = $("wave");
-    const msg = $("listen-msg");
-    const list = $("listen-list");
-    wave.classList.add("active");
-    btn.textContent = "Listening…";
-    const seq = [
-      [400, "Shh…"],
-      [1300, "…footsteps above you."],
-      [2200, "…a ding. The elevator is right there."],
-      [3100, "…voices in the hallway."],
-      [4000, "…and the pipes just clanked."],
-    ];
-    seq.forEach(([t, text]) => R.toolTimers.push(setTimeout(() => (msg.textContent = text), t)));
-    R.toolTimers.push(
-      setTimeout(() => {
-        wave.classList.remove("active");
-        list.classList.remove("hidden");
-        M.toolDone = true;
-        renderModal();
-      }, 4800)
-    );
+    runTimedList(M, btn, {
+      doing: "Listening…",
+      seq: [
+        [400, "Shh…"],
+        [1300, "…footsteps above you."],
+        [2200, "…a ding. The elevator is right there."],
+        [3100, "…voices in the hallway."],
+        [4000, "…and the pipes just clanked."],
+      ],
+      doneAt: 4800,
+    });
   }
+}
+
+function runTimedList(M, btn, { doing, seq, doneAt }) {
+  const wave = $("wave");
+  const msg = $("listen-msg");
+  const list = $("listen-list");
+  if (wave) wave.classList.add("active");
+  btn.textContent = doing;
+  seq.forEach(([t, text]) => R.toolTimers.push(setTimeout(() => (msg.textContent = text), t)));
+  R.toolTimers.push(
+    setTimeout(() => {
+      if (wave) wave.classList.remove("active");
+      list.classList.remove("hidden");
+      M.toolDone = true;
+      renderModal();
+    }, doneAt)
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -980,15 +1090,17 @@ function collect(itemId) {
 // Completion
 // ---------------------------------------------------------------------------
 function finishGame() {
+  const first = !S.complete;
   S.complete = true;
   closeModal();
   closeDrawer();
 
-  // time bonus
-  const { timeBonusMax, timeBonusUnderMs, timeBonusZeroMs } = SCORING;
-  const k = Math.min(1, Math.max(0, (timeBonusZeroMs - S.elapsedMs) / (timeBonusZeroMs - timeBonusUnderMs)));
-  S.timeBonus = Math.round(timeBonusMax * k);
-  S.score += S.timeBonus;
+  if (first) {
+    const { timeBonusMax, timeBonusUnderMs, timeBonusZeroMs } = SCORING;
+    const k = Math.min(1, Math.max(0, (timeBonusZeroMs - S.elapsedMs) / (timeBonusZeroMs - timeBonusUnderMs)));
+    S.timeBonus = Math.round(timeBonusMax * k);
+    S.score += S.timeBonus;
+  }
 
   const rank = [...RANKS].reverse().find((r) => S.score >= r.min) || RANKS[0];
   $("rank-badge").textContent = rank.tier;
@@ -999,7 +1111,7 @@ function finishGame() {
   const accuracy = S.clicks ? Math.round(((S.clicks - S.misclicks) / S.clicks) * 100) : 100;
   const best = loadBest();
   const isBest = !best || S.score > best.score;
-  if (isBest) localStorage.setItem(BEST_KEY, JSON.stringify({ score: S.score, timeMs: S.elapsedMs, rank: rank.title }));
+  if (first && isBest) localStorage.setItem(BEST_KEY, JSON.stringify({ score: S.score, timeMs: S.elapsedMs, rank: rank.title }));
 
   $("complete-stats").innerHTML = [
     ["Score", `${S.score}${isBest ? ' <small class="new-best">new best</small>' : best ? `<small>best ${best.score}</small>` : ""}`],
@@ -1038,10 +1150,22 @@ function finishGame() {
     list.appendChild(g);
   });
 
-  Sound.fanfare();
-  spawnConfetti();
+  if (first) {
+    Sound.fanfare();
+    spawnConfetti();
+    localStorage.removeItem(SAVE_KEY);
+  }
+  showComplete();
+}
+
+function showComplete() {
+  closeModal();
   $("complete").classList.remove("hidden");
-  localStorage.removeItem(SAVE_KEY);
+  updateHUD();
+}
+
+function hideComplete() {
+  $("complete").classList.add("hidden");
   updateHUD();
 }
 
@@ -1281,15 +1405,19 @@ function bind() {
     }
   });
   $("btn-print").addEventListener("click", () => window.print());
-  $("complete-close").addEventListener("click", () => $("complete").classList.add("hidden"));
+  $("btn-results").addEventListener("click", showComplete);
+  $("complete-close").addEventListener("click", hideComplete);
+  $("complete").addEventListener("click", (e) => {
+    if (e.target === $("complete")) hideComplete();
+  });
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       if (R.modal) closeModal();
       else if (R.drawerOpen) closeDrawer();
-      else if (!$("complete").classList.contains("hidden")) $("complete").classList.add("hidden");
+      else if (!$("complete").classList.contains("hidden")) hideComplete();
     }
     if ((e.key === "h" || e.key === "H") && S.started && !R.modal && !S.complete) $("btn-hint").click();
-    if ((e.key === "c" || e.key === "C") && S.started && !R.modal && !S.complete) $("btn-checklist").click();
+    if ((e.key === "c" || e.key === "C") && S.started && !R.modal) $("btn-checklist").click();
   });
   window.addEventListener("resize", layoutScene);
   document.addEventListener("visibilitychange", () => {
