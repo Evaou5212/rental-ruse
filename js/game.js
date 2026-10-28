@@ -16,9 +16,9 @@ import { ICONS, mountIcons } from "./icons.js";
 // ---------------------------------------------------------------------------
 const $ = (id) => document.getElementById(id);
 const TOTAL = Object.keys(ITEMS).length;
-const SAVE_KEY = "rentcheck.save.v2";
-const BEST_KEY = "rentcheck.best.v1";
-const MUTE_KEY = "rentcheck.muted";
+const SAVE_KEY = "rentalruse.save.v1";
+const BEST_KEY = "rentalruse.best.v1";
+const MUTE_KEY = "rentalruse.muted";
 
 const fmtTime = (ms) => {
   const s = Math.floor(ms / 1000);
@@ -1185,7 +1185,7 @@ function spawnConfetti() {
 }
 
 function checklistText() {
-  const lines = ["RENT CHECK — Apartment Viewing Checklist", ""];
+  const lines = ["RENTAL RUSE — Apartment Viewing Checklist", ""];
   Object.entries(CATEGORIES).forEach(([key, cat]) => {
     const ids = Object.entries(ITEMS).filter(([, it]) => it.category === key).map(([id]) => id);
     if (!ids.length) return;
