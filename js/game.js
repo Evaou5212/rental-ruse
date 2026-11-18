@@ -664,6 +664,7 @@ function openHotspot(hs, rectIndex = 0) {
   }
   renderModal();
   $("modal").classList.remove("hidden");
+  requestAnimationFrame(layoutModal);
 }
 
 function openTool(tool) {
@@ -674,6 +675,7 @@ function openTool(tool) {
   R.modal = { hotspot: fake, itemIndex: 0, stepIndex: done ? ITEMS[tool].steps.length - 1 : 0, review: done, toolDone: done };
   renderModal();
   $("modal").classList.remove("hidden");
+  requestAnimationFrame(layoutModal);
 }
 
 function closeModal() {
@@ -681,6 +683,45 @@ function closeModal() {
   R.toolTimers.forEach(clearTimeout);
   R.toolTimers = [];
   $("modal").classList.add("hidden");
+  layoutModal();
+}
+
+function layoutModal() {
+  const overlay = $("modal");
+  const card = overlay.querySelector(".modal-card");
+  const grid = overlay.querySelector(".modal-grid");
+  const body = $("modal-body");
+  const actions = overlay.querySelector(".modal-actions");
+  const tabs = $("modal-tabs");
+  const mediaWrap = overlay.querySelector(".modal-media-wrap");
+  if (!card || !grid || !body) return;
+
+  card.style.height = "";
+  card.style.maxHeight = "";
+  grid.style.height = "";
+  grid.style.maxHeight = "";
+  body.style.maxHeight = "";
+
+  if (overlay.classList.contains("hidden") || !overlay.clientHeight) return;
+
+  const avail = Math.max(180, overlay.clientHeight - 36);
+  card.style.maxHeight = `${avail}px`;
+
+  const natural = card.scrollHeight;
+  if (natural <= avail + 1) return;
+
+  card.style.height = `${avail}px`;
+  const tabsH = tabs && !tabs.classList.contains("hidden") ? tabs.offsetHeight : 0;
+  const actionsH = actions ? actions.offsetHeight : 0;
+  const gridH = Math.max(120, avail - tabsH - actionsH);
+  grid.style.height = `${gridH}px`;
+  grid.style.maxHeight = `${gridH}px`;
+
+  const stacked = window.matchMedia("(max-width: 980px)").matches;
+  let bodyH = gridH;
+  if (stacked && mediaWrap) bodyH = Math.max(96, gridH - mediaWrap.offsetHeight);
+  body.style.maxHeight = `${bodyH}px`;
+  body.style.overflowY = "auto";
 }
 
 function renderModal() {
@@ -723,6 +764,7 @@ function renderModal() {
     const img = el("img");
     img.src = step.image;
     img.alt = item.title;
+    img.onload = () => layoutModal();
     media.appendChild(img);
   } else if (step.crop) {
     const sc = SCENES[hs.scene];
@@ -803,6 +845,7 @@ function renderModal() {
   $("modal-body").scrollTop = 0;
   btn.classList.remove("hidden");
   btn.style.display = "";
+  requestAnimationFrame(layoutModal);
 }
 
 function buildOverlay(kind) {
@@ -1422,8 +1465,28 @@ function bind() {
     if ((e.key === "h" || e.key === "H") && S.started && !R.modal && !S.complete) $("btn-hint").click();
     if ((e.key === "c" || e.key === "C") && S.started && !R.modal) $("btn-checklist").click();
   });
-  window.addEventListener("resize", layoutScene);
-  if (window.visualViewport) window.visualViewport.addEventListener("resize", layoutScene);
+  window.addEventListener("resize", () => {
+    layoutScene();
+    layoutModal();
+  });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", () => {
+      layoutScene();
+      layoutModal();
+    });
+  }
+  $("modal").addEventListener(
+    "wheel",
+    (e) => {
+      const body = $("modal-body");
+      if (!body || $("modal").classList.contains("hidden")) return;
+      if (body.contains(e.target)) return;
+      if (body.scrollHeight <= body.clientHeight + 1) return;
+      e.preventDefault();
+      body.scrollTop += e.deltaY;
+    },
+    { passive: false }
+  );
   document.addEventListener("visibilitychange", () => {
     // don't count time while the tab is hidden
     R.lastTick = performance.now();
