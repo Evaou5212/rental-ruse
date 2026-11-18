@@ -831,7 +831,7 @@ export const HOTSPOTS = [
   { id: "hs_undersink", scene: "room", items: ["undersink"], rects: [[20, 52, 7.5, 20]] },
   { id: "hs_stove", scene: "room", items: ["stove"], rects: [[0, 53, 12.5, 40]] },
   { id: "hs_rug", scene: "room", items: ["rug"], rects: [[48, 70, 26, 30]] },
-  { id: "hs_pests", scene: "room", items: ["pests"], rects: [[0, 87, 13, 11], [16, 78, 12, 16], [66, 51, 18, 8]] },
+  { id: "hs_pests", scene: "room", items: ["pests"], rects: [[0, 87, 13, 11], [16, 78, 12, 16]] },
   // Door into the bathroom: not an item, switches scene.
   { id: "hs_bathdoor", scene: "room", goto: "bathroom", rects: [[41.5, 11, 11, 50]] },
 
