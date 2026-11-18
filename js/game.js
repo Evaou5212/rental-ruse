@@ -278,10 +278,11 @@ function layoutScene() {
   const playW = play.clientWidth || 1;
   const topH = hudTop.offsetHeight || 56;
   const botH = hudBot.offsetHeight || 56;
+  const viewH = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
   let w = playW;
   let h = Math.round(w / ratio);
   if (stacked) {
-    const maxH = Math.max(180, window.innerHeight - topH - botH);
+    const maxH = Math.max(180, Math.round(viewH) - topH - botH);
     if (h > maxH) {
       h = maxH;
       w = Math.round(h * ratio);
@@ -712,18 +713,16 @@ function renderModal() {
   const media = $("modal-media");
   media.innerHTML = "";
   media.className = "modal-media";
+  media.style.aspectRatio = "";
+  media.style.removeProperty("--ar");
   if (step.tool) {
     renderTool(media, step.tool, M);
   } else if (step.image) {
-    media.style.aspectRatio = "3 / 2";
+    media.style.aspectRatio = "";
+    media.style.removeProperty("--ar");
     const img = el("img");
     img.src = step.image;
     img.alt = item.title;
-    img.onload = () => {
-      if (img.naturalWidth && img.naturalHeight) {
-        media.style.aspectRatio = `${img.naturalWidth} / ${img.naturalHeight}`;
-      }
-    };
     media.appendChild(img);
   } else if (step.crop) {
     const sc = SCENES[hs.scene];
@@ -735,8 +734,10 @@ function renderModal() {
     const py = h >= 100 ? 0 : (t / (100 - h)) * 100;
     crop.style.backgroundPosition = `${px}% ${py}%`;
     const aspect = (w / h) * sc.ratio;
+    media.classList.add("has-crop");
+    media.style.setProperty("--ar", String(aspect));
     media.style.aspectRatio = `${aspect}`;
-    if (aspect < 1) media.classList.add("portrait"); // tall crops: cap height, center
+    if (aspect < 1) media.classList.add("portrait");
     media.appendChild(crop);
   }
   if (step.overlay) media.appendChild(buildOverlay(step.overlay));
@@ -800,6 +801,8 @@ function renderModal() {
     btn.onclick = () => collect(itemId);
   }
   $("modal-body").scrollTop = 0;
+  btn.classList.remove("hidden");
+  btn.style.display = "";
 }
 
 function buildOverlay(kind) {
@@ -1420,6 +1423,7 @@ function bind() {
     if ((e.key === "c" || e.key === "C") && S.started && !R.modal) $("btn-checklist").click();
   });
   window.addEventListener("resize", layoutScene);
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", layoutScene);
   document.addEventListener("visibilitychange", () => {
     // don't count time while the tab is hidden
     R.lastTick = performance.now();
